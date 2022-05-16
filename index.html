@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Week Forecast</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+</head>
+<body style="background-color:lightgrey">
+    <div id="nav">
+        <div class="d-flex justify-content-center align-items-center p-1 pt-3 px-2">
+            <label for="address">Enter Zipcode: </label><input type="text" id="address" class="mx-2">
+            <button class="btn-primary btn-sm" onclick="showWeather()">
+                Show
+            </button>
+        </div>
+        <div id="checks" class="d-flex justify-content-center align-items-center p-2 flex-wrap">
+            <div class="form-check m-1">
+              <label class="form-check-label">
+                <input id="showDetForecast" type="checkbox" class="form-check-input" name="" id="" value="checkedValue" checked>
+                Show Detailed Forecast
+              </label>
+            </div>
+            <div class="form-check m-1">
+              <label class="form-check-label">
+                <input id="showWindDir" type="checkbox" class="form-check-input" name="" id="" value="checkedValue" checked>
+                Show Wind Direction
+              </label>
+            </div>
+            <div class="form-check m-1">
+              <label class="form-check-label">
+                <input id="showWindSpeed"  type="checkbox" class="form-check-input" name="" id="" value="checkedValue" checked>
+                Show Wind Speed
+              </label>
+            </div>
+            <div class="form-check m-1">
+                <input class="form-check-input" type="radio" name="flexRadioDefault" id="farenheit" checked>
+                <label class="form-check-label" for="flexRadioDefault1">
+                  Farenheit
+                </label>
+              </div>
+              <div class="form-check m-1">
+                <input class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault2">
+                <label class="form-check-label" for="flexRadioDefault2">
+                    Celsius
+                </label>
+              </div>
+        </div>
+    </div>
+    <div class ="container d-flex flex-column justify-content-around" >
+        <div id="forecast-wrapper">
+        </div>
+    </div>
+    <script>
+        
+        const locationApi = (address) =>{
+            const url = `https://api.geocod.io/v1.6/geocode?q=${address}&api_key=661f10101f5551601645516fff5559650249f94`;
+            return fetch(url).then(res => {
+                return res.json();
+            })
+        }
+        const weatherApi = (locationRes) => {
+
+            const locationValue = locationRes.results[0].location;
+            console.log(locationRes.results[0].location);
+                const lg = locationValue.lng;
+                const lt = locationValue.lat;
+                return fetch(`https://api.weather.gov/points/${lt},${lg}`)
+                .then(res => {
+                    return res.json()});
+        }
+        const foreCastApi = (foreCastUrl) =>{
+            console.log(foreCastUrl);
+            return fetch(foreCastUrl).then(res => {return res.json()})
+        }
+
+        const showWeather = () =>{
+            let showDetForecast = 'none';
+            let showWindDir = 'none';
+            let showSpeed = 'none';
+            let showFarenheit = true;
+            let temperature;
+            let degrees = 'F';
+            console.log(document.getElementById('farenheit').checked)
+            
+            if (document.getElementById('showDetForecast').checked) {
+                showDetForecast = '';
+                console.log(showDetForecast);
+            }
+            if (document.getElementById('showWindDir').checked) {
+                showWindDir = '';
+            }
+            if (document.getElementById('showWindSpeed').checked) {
+                showSpeed = '';
+            }
+            const address = document.getElementById("address").value;
+            locationApi(address)
+            .then(locationResponse => {
+                weatherApi(locationResponse)
+                .then(weatherResponse => {
+                    console.log(weatherResponse);
+                    foreCastApi(weatherResponse.properties.forecast).then(foreCastRes => {
+                        let forecastArr = foreCastRes.properties.periods.map(function (forecast) {
+                            if (document.getElementById('farenheit').checked){
+                                temperature = forecast.temperature;
+                            } else {
+                                degrees = 'C';
+                                temperature = Math.round((((forecast.temperature) - 32) * 5/9));  
+                            }
+
+
+                
+                          return `<div class="forecast">
+                              <div class="topRow"><h1><span class="text-primary">${forecast.name}</span></h1><div class="d-flex flex-wrap justify-content-center align-items-center"><h2 class="pe-3 mb-2"><span class="text-warning">${forecast.shortForecast}</span></h2><span><img src="${forecast.icon}" height="55px"></span></div></div>
+                              <p style='display:${showDetForecast}'>${forecast.detailedForecast}</p>
+                              <p><strong>Temperature: </strong>${temperature}${degrees}</p>
+                              <p style='display:${showWindDir}'><strong>Wind Direction: </strong>${forecast.windDirection}</p>
+                              <p style='display:${showSpeed}'><strong>Wind Speed: </strong>${forecast.windSpeed}</p>
+                            </div>`
+                        })
+                        let forecast= forecastArr.join('');
+                        document.getElementById('forecast-wrapper').innerHTML = forecast;
+                    })
+                })
+            })
+        }
+
+        console.log(document.getElementById('showDetForecast').checked);
+    </script>
+</body>
+</html>

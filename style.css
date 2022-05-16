@@ -1,0 +1,25 @@
+.forecast {
+    display: flex;
+    flex-direction: column;
+    background-color: whitesmoke;
+    padding: 30px;
+    margin: 20px;
+    
+}
+
+.topRow {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    width: 100%;
+    
+}
+
+img {
+    border-radius: 50%;
+}
+
+#nav {
+    background-color: whitesmoke;
+    width: 100vw;
+}
